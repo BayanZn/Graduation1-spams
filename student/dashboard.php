@@ -4,14 +4,16 @@ require_once '../components/head.php';
 
 // Get student's project and defense info
 $stmt = $db->prepare("
-    SELECT s.*, p.project_name, p.project_case, 
-           ds.scheduled_date, ds.location, ds.status as defense_status,
-           GROUP_CONCAT(sp.full_name SEPARATOR ', ') as supervisors
+   SELECT s.*, p.project_name, p.project_case, 
+           ds.scheduled_date, ds.venue, ds.supervisor_id, ds.status as defense_status,
+           GROUP_CONCAT(sp.full_name SEPARATOR ', ') as supervisors,
+           dsp.full_name as discusser_name
     FROM students s
     LEFT JOIN projects p ON s.project_id = p.id
     LEFT JOIN defense_schedule ds ON s.id = ds.student_id
     LEFT JOIN project_supervision ps ON p.id = ps.project_id
     LEFT JOIN supervisors sp ON ps.supervisor_id = sp.id
+    LEFT JOIN supervisors dsp ON ds.supervisor_id = dsp.id
     WHERE s.id = ?
     GROUP BY s.id
 ");
@@ -112,7 +114,8 @@ $unreadMessages = $unreadMessages->fetch()->count;
                                                 <strong>Date:</strong> 
                                                 <?= date('F j, Y \a\t H:i', strtotime($student->scheduled_date)) ?>
                                             </p>
-                                            <p><strong>Location:</strong> <?= htmlspecialchars($student->location) ?></p>
+                                            <p><strong>Discusser:</strong> <?= htmlspecialchars($student->discusser_name) ?></p>
+                                            <p><strong>Venue:</strong> <?= htmlspecialchars($student->venue) ?></p>
                                             <p>
                                                 <strong>Status:</strong> 
                                                 <span class="badge badge-<?= 
